@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cisco IOS Hálózati Parancsok Cheat Sheet</title>
+    <style>
+        :root {
+            --bg-color: #0d1117;
+            --card-bg: #161b22;
+            --text-color: #c9d1d9;
+            --text-muted: #8b949e;
+            --primary-color: #58a6ff;
+            --accent-color: #7ee787;
+            --border-color: #30363d;
+            --search-bg: #21262d;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 20px;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        /* Kereső sáv stílusa */
+        .search-container {
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .search-bar {
+            width: 100%;
+            padding: 14px 20px;
+            background-color: var(--search-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-color);
+            font-size: 1rem;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+
+        .search-bar:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        /* Kártyák elrendezése */
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        @media (min-width: 768px) {
+            .grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .card h2 {
+            color: var(--accent-color);
+            font-size: 1.3rem;
+            margin-top: 0;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+        }
+
+        .command-group {
+            margin-bottom: 15px;
+        }
+
+        .command-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .comment {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 4px;
+            font-weight: 500;
+        }
+
+        pre {
+            background-color: var(--bg-color);
+            padding: 10px 14px;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin: 0;
+            border: 1px solid var(--border-color);
+        }
+
+        code {
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+            color: #ff7b72;
+            font-size: 0.9rem;
+            white-space: pre-wrap;
+        }
+
+        /* Nincs találat üzenet */
+        .no-results {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 1.2rem;
+            padding: 4px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Cisco IOS Enterprise Cheat Sheet</h1>
+        <div class="subtitle">Interaktív hálózati parancssor-gyűjtemény vizsgákhoz és konfigurációhoz</div>
+    </header>
+
+    <div class="search-container">
+        <input type="text" id="searchInput" class="search-bar" placeholder="Keress parancsra, témakörre vagy leírásra (pl. ospf, ssh, vlan)...">
+    </div>
+
+    <div id="noResults" class="no-results">Nincs a keresésnek megfelelő parancs.</div>
+
+    <div class="grid" id="commandsGrid">
+        <!-- 1. Távmenedzsment & VTY (Új) -->
+        <div class="card">
+            <h2>SSH & Távmenedzsment (VTY)</h2>
+            <div class="command-group">
+                <div class="comment"># Alapfeltételek beállítása (Hostnév és Domain)</div>
+                <pre><code>hostname R1
+ip domain-name cisco.local</code></pre>
+            </div>
+            <div class="command-group">
+                <div class="comment"># RSA kulcspár generálása az SSH-hoz (min. 1024 bit ajánlott)</div>
+                <pre><code>crypto key generate rsa</code></pre>
+            </div>
+            <div class="command-group">
+                <div class="comment"># Helyi felhasználó létrehozása titkosított jelszóval</div>
+                <pre><code>username admin privilege 15 secret SzuperTitkosJelszo</code></pre>
+            </div>
+            <div class="command-group">
+                <div class="comment"># VTY (virtuális) vonalak megnyitása és SSH kényszerítése</div>
+                <pre><code>line vty 0 4
+ transport input ssh
+ login local
+ exit</code></pre>
+            </div>
+            <div class="command-group">
+                <div class="comment"># SSH verzió kényszerítése és állapot ellenőrzése</div>
+                <pre><code>ip ssh version 2
+show ip ssh
+show ssh</code></pre>
+            </div>
+        </div>
+
+        <!-- 2. EtherChannel -->
+        <div class="card">
+            <h2>EtherChannel & Link Aggregation (LACP)</h2>
+            <div class="command-group">
+                <div class="comment"># Interfészek kijelölése és LACP alapú csatornába rendezése</div>
+                <pre><code>interface range interface-id
+ channel-group 1 mode active</code></pre>
+            </div>
+            <div class="command-group">
+                <div class="comment"># A létrejött logikai Port-Channel interfész konfigurálása Trunk-ként</div>
+                <pre><code>interface port-channel 1
+ switchport mode trunk
+ switchport trunk allowed vlan vlan-ids</code></pre>
+            </div>
+            <div class="command-group">
+                <div class="comment"># EtherChannel állapotának és a fizikai portok státuszának ellenőrzése</div>
+                <pre><code>show etherchannel summary
+show interfaces port-channel 1</code></pre>
+            </div>
+        </div>
+
+        <!-- 3. Spanning Tree Protocol -->
+        <div class="card">
+            <h2>Spanning Tree Protocol (STP)</h2>
+            <div class="command-group">
+                <div class="comment"># Switch kényszerítése Elsődleges / Másodlagos Root Bridge-nek</div>
+                <pre><code>spanning-tree vlan vlan-id root primary
+spanning-tree vlan vlan-id root secondary</code></pre>
+            </div>
+            <div class="command-group">
+                <div class="comment"># Root Bridge beállítása prioritási érték manuális módosításával</div>
+                <pre><code>spanning-tree vlan vlan-id priority priority-value</code></pre>
+            </div>
+            <div class="command-group">
+                <div class="comment"># Gyorsított portváltás és BPDU védelem beállítása végponti portokon</div>
+                <pre><code>interface interface-id
+ spanning-tree portfast
+ spanning-tree bpduguard enable</code></pre>
+            </div>
+            <div class="command-group">
+                <div class="comment"># STP topológia, Root ID és port-státuszok (Designated, Root, Altn) lekérése</div>
+                <pre><code>show spanning-tree
+show spanning-tree vlan vlan-id</code></pre>
+            </div>
+        </div>
+
+        <!-- 4. Port Security -->
+        <div class="card">
+            <h2>Switchport Security (Port Biztonság)</h2>
+            <div class="command-group">
+                <div class="comment"># Port Security engedélyezése az access porton</div>
+                <pre><code>interface interface-id
+ switchport mode access
+ switchport port-security</code></pre>
+            </div>
+            <div class="command-group">
+                <div class="comment"># Maximális engedélyezett MAC címek száma és dinamikus tanulás (sticky)</div>
+                <pre><code> switchport port-security maximum 2
+ switchport port-security mac-address sticky</code></pre>
+            </div>
+            <div class="command-group">
+                <div class="comment"># Biztonsági szabálysértés módja (lekapcsolás)</div>
+                <pre><code> switchport port-security violation shutdown</code></pre>
+            </div>
+            <div class="command-group">
+                <div class="comment"># Portbiztonsági státuszok és szabályszegési számlálók ellenőrzése</div>
+                <pre><code>show port-security
+show port-security interface interface-id</code></pre>
+            </div>
+        </div>
+
+        <!-- 5. VLANs & Inter-VLAN Routing -->
+        <div class="card">
+            <h2>VLAN-ok & Inter-VLAN Routing (ROAS)</h2>
+            <div class="command-group">
+                <div class="comment"># VLAN létrehozása és elnevezése</div>
+                <pre><code>vlan vlan-id
+ name vlan-name</code></pre>
+            </div>
+            <div class="command-group">
+                <div class="comment"># Router alinterfész konfigurálása és 802.1Q encapsulation (Trunk)</div>
+                <pre><code>interface interface-id.subinterface-number
+ encapsulation dot1Q vlan-id
+ ip address ip-address subnet-mask</code></pre>
+            </div>
+            <div class="command-group">
+                <div class="comment"># VLAN adatbázis és Trunk linkek státuszának ellenőrzése</div>
+                <pre><code>show vlan brief
+show interfaces trunk</code></pre>
+            </div>
+        </div>
+
+        <!-- 6. OSPF Dinamikus Irányítás -->
+        <div class="card">
+            <h2>OSPF Dinamikus Irányítás</h2>
+            <div class="command-group">
+                <div class="comment"># OSPF folyamat indítása és Router ID manuális rögzítése</div>
+                <pre><code>router ospf process-id
+ router-id router-id-value</code></pre>
+            </div>
+            <div class="command-group">
+                <div class="comment"># Hálózatok hirdetése Wildcard maszkkal és Terület (Area) kiosztással</div>
+                <pre><code> network ip-address wildcard-mask area area-id</code></pre>
+            </div>
+            <div class="command-group">
+                <div class="comment"># Interfész passzívvá tétele (nem küld OSPF üzeneteket a végpontok felé)</div>
+                <pre><code> passive-interface interface-id</code></pre>
+            </div>
+            <div class="command-group">
+                <div class="comment"># OSPF szomszédok kapcsolatainak és az útválasztási táblának a megtekintése</div>
+                <pre><code>show ip ospf neighbor
+show ip route ospf</code></pre>
+            </div>
+        </div>
+
+        <!-- 7. Access Control Lists -->
+        <div class="card">
+            <h2>Access Control Lists (ACL - Hozzáférési Listák)</h2>
+            <div class="command-group">
+                <div class="comment"># Szabványos (Standard) számozott ACL létrehozása (csak forrás IP szűrés)</div>
+                <pre><code>access-list 10 permit ip-address wildcard-mask
+access-list 10 deny any</code></pre>
+            </div>
+            <div class="command-group">
+                <div class="comment"># Kiterjesztett (Extended) nevesített ACL (Forrás, Cél IP és specifikus portok)</div>
+                <pre><code>ip access-list extended WEB_ONLY
+ permit tcp source-ip wildcard destination-ip wildcard eq 80
+ permit tcp source-ip wildcard destination-ip wildcard eq 443
+ deny ip any any</code></pre>
+            </div>
+            <div class="command-group">
+                <div class="comment"># ACL alkalmazása egy interfész bejövő (in) vagy kimenő (out) forgalmára</div>
+                <pre><code>interface interface-id
+ ip access-group {10 | WEB_ONLY} {in | out}</code></pre>
+            </div>
+            <div class="command-group">
+                <div class="comment"># Aktív hozzáférési listák és a szabályokra illeszkedő csomagok száma</div>
+                <pre><code>show access-lists</code></pre>
+            </div>
+        </div>
+
+        <!-- 8. NAT & PAT -->
+        <div class="card">
+            <h2>NAT & PAT (Címfordítás)</h2>
+            <div class="command-group">
+                <div class="comment"># Statikus NAT konfigurálása (Belső szerver fix publikus IP címre fordítása)</div>
+                <pre><code>ip nat inside source static local-ip global-ip</code></pre>
+            </div>
+            <div class="command-group">
+                <div class="comment"># Dinamikus PAT (Port Address Translation) belső hálózat kiengedése egy külső interfészen</div>
+                <pre><code>access-list 1 permit 192.168.1.0 0.0.0.255
+ip nat inside source list 1 interface interface-id overload</code></pre>
+            </div>
+            <div class="command-group">
+                <div class="comment"># Belső (inside) és Külső (outside) interfészek kijelölése</div>
+                <pre><code>interface interface-id-inside
+ ip nat inside
+interface interface-id-outside
+ ip nat outside</code></pre>
+            </div>
+            <div class="command-group">
+                <div class="comment"># Aktív címfordítási tábla és statisztikák nyomon követése</div>
+                <pre><code>show ip nat translations
+show ip nat statistics</code></pre>
+            </div>
+        </div>
+
+        <!-- Kiegészítés: EtherChannel -->
+        <div class="card"><h2>EtherChannel – LACP, PAgP és statikus</h2>
+          <div class="command-group"><div class="comment"># LACP: active/active vagy active/passive párosítás</div><pre><code>interface range gigabitEthernet 0/1 - 2
+ switchport mode trunk
+ channel-group 1 mode active
+ no shutdown
+exit
+interface port-channel 1
+ switchport mode trunk</code></pre></div>
+          <div class="command-group"><div class="comment"># PAgP: desirable/auto vagy desirable/desirable (Cisco)</div><pre><code>interface range gigabitEthernet 0/3 - 4
+ channel-group 2 mode desirable</code></pre></div>
+          <div class="command-group"><div class="comment"># Statikus EtherChannel (mindkét oldalon on)</div><pre><code>interface range gigabitEthernet 0/5 - 6
+ channel-group 3 mode on</code></pre></div>
+          <div class="command-group"><div class="comment"># Ellenőrzés és hibakeresés</div><pre><code>show etherchannel summary
+show etherchannel detail
+show lacp neighbor
+show pagp neighbor
+show interfaces port-channel 1
+show interfaces trunk</code></pre></div>
+        </div>
+        <!-- Kiegészítés: STP -->
+        <div class="card"><h2>STP – részletes konfiguráció</h2>
+          <div class="command-group"><div class="comment"># PVST+ és root bridge beállítás</div><pre><code>spanning-tree mode pvst
+spanning-tree vlan 10 root primary
+spanning-tree vlan 20 root secondary
+spanning-tree vlan 10 priority 4096</code></pre></div>
+          <div class="command-group"><div class="comment"># PortFast és BPDU Guard kizárólag végponti access porton</div><pre><code>interface fastEthernet 0/10
+ switchport mode access
+ spanning-tree portfast
+ spanning-tree bpduguard enable</code></pre></div>
+          <div class="command-group"><div class="comment"># Root Guard: nem enged új root bridge-et a kijelölt port felől</div><pre><code>interface gigabitEthernet 0/3
+ spanning-tree guard root</code></pre></div>
+          <div class="command-group"><div class="comment"># STP állapot és hibakeresés</div><pre><code>show spanning-tree
+show spanning-tree vlan 10
+show spanning-tree root
+show spanning-tree interface gigabitEthernet 0/1 detail
+show spanning-tree summary</code></pre></div>
+        </div>
+        <!-- Kiegészítés: RSTP -->
+        <div class="card"><h2>RSTP – Rapid PVST+</h2>
+          <div class="command-group"><div class="comment"># Rapid PVST+ bekapcsolása (Cisco switch)</div><pre><code>configure terminal
+spanning-tree mode rapid-pvst
+spanning-tree vlan 10 root primary
+spanning-tree vlan 20 root secondary</code></pre></div>
+          <div class="command-group"><div class="comment"># Edge port gyors továbbítása és BPDU védelem</div><pre><code>interface fastEthernet 0/10
+ switchport mode access
+ spanning-tree portfast
+ spanning-tree bpduguard enable</code></pre></div>
+          <div class="command-group"><div class="comment"># RSTP ellenőrzés: Root, Designated, Alternate portok</div><pre><code>show spanning-tree summary
+show spanning-tree vlan 10
+show spanning-tree interface gigabitEthernet 0/1 detail
+show spanning-tree root</code></pre></div>
+          <div class="command-group"><div class="comment"># Rapid PVST+ helyett klasszikus PVST+ mód</div><pre><code>spanning-tree mode pvst</code></pre></div>
+        </div>
+        <!-- Kiegészítés: Subinterface -->
+        <div class="card"><h2>Subinterface – Router-on-a-Stick</h2>
+          <div class="command-group"><div class="comment"># Fizikai router interfész bekapcsolása</div><pre><code>interface gigabitEthernet 0/0
+ no shutdown</code></pre></div>
+          <div class="command-group"><div class="comment"># VLAN 10 és VLAN 20 alinterfész / gateway</div><pre><code>interface gigabitEthernet 0/0.10
+ encapsulation dot1Q 10
+ ip address 192.168.10.1 255.255.255.0
+exit
+interface gigabitEthernet 0/0.20
+ encapsulation dot1Q 20
+ ip address 192.168.20.1 255.255.255.0</code></pre></div>
+          <div class="command-group"><div class="comment"># Natív VLAN példa (csak ha a trunk másik oldalán is egyezik)</div><pre><code>interface gigabitEthernet 0/0.99
+ encapsulation dot1Q 99 native
+ ip address 192.168.99.1 255.255.255.0</code></pre></div>
+          <div class="command-group"><div class="comment"># Kapcsolódó switch port trunk módba állítása</div><pre><code>interface gigabitEthernet 0/1
+ switchport mode trunk
+ switchport trunk allowed vlan 10,20,99</code></pre></div>
+          <div class="command-group"><div class="comment"># Ellenőrzés</div><pre><code>show ip interface brief
+show running-config interface gigabitEthernet 0/0.10
+show ip route
+show interfaces trunk</code></pre></div>
+        </div>
+        <!-- Kiegészítés: Console -->
+        <div class="card"><h2>Console – helyi konzol elérés</h2>
+          <div class="command-group"><div class="comment"># Console jelszó és belépés (tanulási példa)</div><pre><code>line console 0
+ password KonzolJelszo
+ login
+ logging synchronous
+ exec-timeout 5 0</code></pre></div>
+          <div class="command-group"><div class="comment"># Biztonságosabb: helyi felhasználói adatbázissal</div><pre><code>username admin privilege 15 secret ErosEgyediJelszo
+line console 0
+ login local
+ logging synchronous
+ exec-timeout 5 0</code></pre></div>
+          <div class="command-group"><div class="comment"># Ellenőrzés és mentés</div><pre><code>show running-config | section line con
+show users
+copy running-config startup-config</code></pre></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const searchInput = document.getElementById('searchInput');
+    const cards = document.querySelectorAll('.card');
+    const noResults = document.getElementById('noResults');
+
+    searchInput.addEventListener('input', function() {
+        const query = searchInput.value.toLowerCase().trim();
+        let hasMatches = false;
+
+        cards.forEach(card => {
+            const textContent = card.textContent.toLowerCase();
+            if (textContent.includes(query)) {
+                card.style.display = 'block';
+                hasMatches = true;
+            } else {
+                card.style.display = 'none';
+            }
+        });
+
+        if (hasMatches || query === '') {
+            noResults.style.display = 'none';
+        } else {
+            noResults.style.display = 'block';
+        }
+    });
+</script>
+
+</body>
+</html>
